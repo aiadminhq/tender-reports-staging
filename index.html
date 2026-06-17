@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex">
+<title>標案配發索引（STAGING 測試站）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI','Microsoft JhengHei',sans-serif;background:#0f1117;color:#e2e8f0;padding:20px;}
+.header{background:linear-gradient(135deg,#3a1f08,#4a2a0a);border:1px solid #b8860b;border-radius:10px;padding:16px 22px;margin-bottom:16px;}
+.header h1{font-size:1.2rem;color:#fbbf24;}
+.header p{color:#a78b4f;font-size:.8rem;margin-top:6px;line-height:1.6;}
+table{width:100%;border-collapse:collapse;}
+th,td{padding:9px 11px;border-bottom:1px solid #1e2d45;font-size:.85rem;text-align:left;}
+th{color:#64748b;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;}
+a{color:#60a5fa;text-decoration:none;}
+.empty{color:#64748b;padding:20px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🧪 標案配發索引（STAGING 測試站）</h1>
+  <p>此為測試環境，內容僅供上線前驗證、未對外。正式站台：aiadminhq.github.io/tender-reports<br>
+     首頁為精簡版；per-day 報表與正式同一支程式產生、格式一致。</p>
+</div>
+<table>
+  <thead><tr><th>日期</th><th>總件數</th><th>🟢高</th><th>🟡中</th><th>🔴低</th><th>⭐最優先</th><th>報表</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+<div id="emptyMsg" class="empty" style="display:none">尚無測試報表，請手動觸發 Staging Tender Report。</div>
+<script>
+// update_index 會把每日紀錄注入到下面的 records 陣列（請勿移除這行宣告）
+let records = [];
+function renderTable(){
+  var tb = document.getElementById('rows');
+  if (!records || records.length === 0){
+    document.getElementById('emptyMsg').style.display = 'block';
+    tb.innerHTML = '';
+    return;
+  }
+  tb.innerHTML = records.map(function(r){
+    return '<tr><td>'+r.date+'</td><td>'+r.total+'</td><td>'+(r.high||0)+'</td><td>'+(r.mid||0)+
+      '</td><td>'+(r.low||0)+'</td><td>'+(r.priority||0)+
+      '</td><td><a href="reports/'+r.filename+'" target="_blank">📄 開啟報表</a></td></tr>';
+  }).join('');
+}
+renderTable();
+</script>
+</body>
+</html>
