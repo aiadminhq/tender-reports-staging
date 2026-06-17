@@ -31,7 +31,20 @@ a{color:#60a5fa;text-decoration:none;}
 <div id="emptyMsg" class="empty" style="display:none">尚無測試報表，請手動觸發 Staging Tender Report。</div>
 <script>
 // update_index 會把每日紀錄注入到下面的 records 陣列（請勿移除這行宣告）
-let records = [];
+let records = [
+  {
+    date: "2026-06-17",
+    total: 22,
+    high: 20,
+    mid: 2,
+    low: 0,
+    urgent: 0,
+    priority: 0,
+    budget: 17393,
+    summary: "115年泉州綜合大樓建築物檢查缺失改善工程（臺北市政府警察局中正第二分局）、115年度拱月樓電梯整修工程（臺北市內湖區南湖國民小學）",
+    filename: "tender-20260617.html",
+    priority_items: []
+  },];
 function renderTable(){
   var tb = document.getElementById('rows');
   if (!records || records.length === 0){
@@ -47,5 +60,89 @@ function renderTable(){
 }
 renderTable();
 </script>
+<!-- PRIORITY_BLOCK_START -->
+<style>
+#priorityCards{margin:18px 0;padding:16px 20px;background:linear-gradient(135deg,#2a1f08,#3b2a0a);border:1px solid #b8860b;border-radius:10px;box-shadow:0 0 18px #b8860b22;}
+#priorityCards .pc-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+#priorityCards .pc-title{color:#fbbf24;font-size:1rem;font-weight:700;}
+#priorityCards .pc-sub{color:#fde68a;font-size:0.78rem;}
+#priorityCards .pc-rule-label{color:#fbbf24;font-size:0.75rem;font-weight:600;margin-right:6px;}
+#priorityCards .pc-rules{color:#c9a55a;font-size:0.72rem;line-height:1.55;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #92651633;}
+#priorityCards .pc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;}
+#priorityCards .pc-card{background:#1a1308;border:1px solid #92651655;border-radius:7px;padding:10px 12px;text-decoration:none;display:block;transition:border-color .15s,transform .15s;}
+#priorityCards .pc-card:hover{border-color:#fbbf24;transform:translateY(-1px);}
+#priorityCards .pc-name{color:#fde68a;font-weight:600;font-size:0.86rem;line-height:1.35;margin-bottom:5px;}
+#priorityCards .pc-meta{display:flex;justify-content:space-between;gap:8px;font-size:0.76rem;color:#94a3b8;margin-bottom:4px;}
+#priorityCards .pc-budget{color:#fbbf24;font-weight:600;}
+#priorityCards .pc-deadline{color:#a78b4f;font-size:0.7rem;}
+#priorityCards .pc-deadline a{color:#fbbf24;text-decoration:none;}
+#priorityCards .pc-empty{color:#a78b4f;font-size:0.8rem;text-align:center;padding:14px;}
+</style>
+<script>
+(function(){
+  var __PRI_LABEL="北捷復興崗";
+  var __PRI_DESC="關鍵字：復興崗 ｜ 機關含：臺北大眾捷運";
+  var __PRI_KW=["復興崗"];
+  var __PRI_ORG_INC=["臺北大眾捷運"];
+  var __PRI_ORG_EXC=[];
+  var __PRI_BMIN=0;  // 萬，0 = 不啟用
+  var __PRI_BMAX=0;  // 萬，0 = 不啟用
+  var __PRI_DMIN=null;     // null = 不啟用
+  var __PRI_DMAX=null;     // null = 不啟用
+  function esc(s){return String(s||'').replace(/[&<>"']/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});}
+  function matchesCurrentRule(p){
+    var name=p.name||'',org=p.org||'';
+    if(__PRI_KW.length && !__PRI_KW.some(function(k){return name.indexOf(k)!==-1;}))return false;
+    if(__PRI_ORG_INC.length && !__PRI_ORG_INC.some(function(o){return org.indexOf(o)!==-1;}))return false;
+    if(__PRI_ORG_EXC.length && __PRI_ORG_EXC.some(function(o){return org.indexOf(o)!==-1;}))return false;
+    var budget=parseFloat(p.budget)||0;
+    if(__PRI_BMIN && budget<__PRI_BMIN)return false;
+    if(__PRI_BMAX && budget>__PRI_BMAX)return false;
+    // days_left 是 record 寫入時的快照，已不準；不在 JS 端用 days 過濾。
+    return true;
+  }
+  function init(){
+    if(typeof records==='undefined')return;
+    var today=new Date().toISOString().slice(0,10);
+    var seen={},all=[];
+    records.forEach(function(r){
+      if(!r.priority_items)return;
+      r.priority_items.forEach(function(p){
+        var key=p.case_no||(p.name+'|'+p.org);
+        if(seen[key])return;
+        if(p.deadline_iso&&p.deadline_iso<today)return;
+        if(!matchesCurrentRule(p))return;  // 按當前規則過濾，避免換規則後舊資料殘留
+        seen[key]=true;
+        p.report_date=r.date;
+        p.report_filename=r.filename;
+        all.push(p);
+      });
+    });
+    all.sort(function(a,b){return (a.deadline_iso||'9999').localeCompare(b.deadline_iso||'9999');});
+    all=all.slice(0,12);
+    var section=document.createElement('section');
+    section.id='priorityCards';
+    var rulesHTML='<div class="pc-rules"><span class="pc-rule-label">'+esc(__PRI_LABEL)+'</span>'+esc(__PRI_DESC)+'</div>';
+    if(all.length===0){
+      section.innerHTML='<div class="pc-head"><span class="pc-title">⭐ 期間最優先追蹤</span></div>'+rulesHTML+'<div class="pc-empty">近期無未過期的最優先案件</div>';
+    }else{
+      var cards=all.map(function(p){
+        return '<a class="pc-card" href="'+esc(p.link)+'" target="_blank">'+
+          '<div class="pc-name">⭐ '+esc(p.name)+'</div>'+
+          '<div class="pc-meta"><span>'+esc(p.org)+'</span><span class="pc-budget">'+esc(p.budget)+' 萬</span></div>'+
+          '<div class="pc-deadline">截止 '+esc(p.deadline)+'（剩 '+esc(p.days_left)+' 天）　〈來自 <a href="reports/'+esc(p.report_filename)+'" target="_blank">'+esc(p.report_date)+' 日報</a>〉</div>'+
+          '</a>';
+      }).join('');
+      section.innerHTML='<div class="pc-head"><div><span class="pc-title">⭐ 期間最優先追蹤</span> <span class="pc-sub">未過期最優先案件 '+all.length+' 筆（依截止日排序）</span></div></div>'+rulesHTML+'<div class="pc-grid">'+cards+'</div>';
+    }
+    var anchor=document.querySelector('.header')||document.querySelector('header')||document.querySelector('h1');
+    if(anchor&&anchor.parentNode){anchor.parentNode.insertBefore(section,anchor.nextSibling);}
+    else{document.body.insertBefore(section,document.body.firstChild);}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+<!-- PRIORITY_BLOCK_END -->
 </body>
 </html>
